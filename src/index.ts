@@ -13,6 +13,9 @@ app.use(logger);
 app.use(express.json());
 app.use('/api/v1/',globalRouter);
 
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 
 app.get('/helloworld',(request,response) =>{
   response.send("Hello World!");

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 22px);
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #event-details,
+        #all-events {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin-bottom: 20px;
+        }
+
+        #event-details h3,
+        #all-events h3 {
+            margin-top: 0;
+        }
+
+        #all-events > div {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #all-events > div:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Create Event</h2>
+<form id="create-event-form">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required><br>
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description" required><br>
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date" required><br>
+    <label for="location">Location:</label>
+    <input type="text" id="location" name="location" required><br>
+    <label for="duration">Duration:</label>
+    <input type="number" id="duration" name="duration" required><br>
+    <button type="submit">Create Event</button>
+</form>
+
+<h2>Get Event by ID</h2>
+<form id="get-event-form">
+    <label for="event-id">Event ID:</label>
+    <input type="text" id="event-id" name="event-id" required><br>
+    <button type="submit">Get Event</button>
+</form>
+
+<div id="event-details"></div>
+
+<h2>All Events</h2>
+<div id="all-events"></div>
+
+<script>
+    document.getElementById('create-event-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+
+        const response = await fetch('/api/v1/events/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            alert('Event created successfully');
+        } else {
+            console.log(response);
+            alert('Failed to create event');
+        }
+    });
+
+    document.getElementById('get-event-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const eventId = document.getElementById('event-id').value;
+
+        const response = await fetch(`/api/v1/events/${eventId}`);
+        const eventData = await response.json();
+
+        if (response.ok) {
+            document.getElementById('event-details').innerHTML = `
+          <h3>Event Details</h3>
+          <p>Name: ${eventData.name}</p>
+          <p>Description: ${eventData.description}</p>
+          <p>Date: ${eventData.date}</p>
+          <p>Location: ${eventData.location}</p>
+          <p>Duration: ${eventData.duration}</p>
+        `;
+        } else {
+            document.getElementById('event-details').innerHTML = '<p>Event not found</p>';
+        }
+    });
+
+    async function loadAllEvents() {
+        const response = await fetch('/api/v1/events/');
+        const events = await response.json();
+
+        document.getElementById('all-events').innerHTML = events.map(event => `
+        <div>
+          <p>ID: ${event._id} - Name: ${event.name}</p>
+        </div>
+      `).join('');
+    }
+
+    async function getEventOnLoad() {
+        document.getElementById('event-id').value = '666881b0ea7e03024a5bfb40';
+        document.getElementById('get-event-form').dispatchEvent(new Event('submit'));
+    }
+
+    window.addEventListener('load', () => {
+        loadAllEvents();
+        getEventOnLoad();
+    });
+</script>
+
+</body>
+</html>
